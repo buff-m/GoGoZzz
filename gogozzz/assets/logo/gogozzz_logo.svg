@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- 深色渐变背景圆 -->
+  <defs>
+    <radialGradient id="bgGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#1a2744"/>
+      <stop offset="100%" stop-color="#0a0f1e"/>
+    </radialGradient>
+    <radialGradient id="moonGrad" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#a8edbc"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- 背景圆 -->
+  <circle cx="512" cy="512" r="490" fill="url(#bgGrad)"/>
+
+  <!-- 月牙 (crescent) - 用两圆相减实现干净月牙 -->
+  <!-- 大圆 -->
+  <circle cx="430" cy="520" r="240" fill="url(#moonGrad)" filter="url(#glow)"/>
+  <!-- 遮罩圆（同色背景，制造月牙效果） -->
+  <circle cx="530" cy="460" r="210" fill="#0d1628"/>
+
+  <!-- 星星 - 右上区域点缀 -->
+  <circle cx="720" cy="240" r="10" fill="#ffffff" opacity="0.9"/>
+  <circle cx="780" cy="310" r="6" fill="#ffffff" opacity="0.6"/>
+  <circle cx="810" cy="200" r="4" fill="#ffffff" opacity="0.5"/>
+  <circle cx="680" cy="180" r="5" fill="#a8edbc" opacity="0.8"/>
+  <circle cx="750" cy="380" r="4" fill="#ffffff" opacity="0.4"/>
+
+  <!-- Zzz 文字 - 右下角，大小递减，带倾斜 -->
+  <text x="610" y="660"
+        font-family="'Arial Rounded MT Bold', Arial, sans-serif"
+        font-size="180"
+        font-weight="900"
+        fill="#4ade80"
+        opacity="1"
+        transform="rotate(-10 610 660)">Z</text>
+  <text x="760" y="560"
+        font-family="'Arial Rounded MT Bold', Arial, sans-serif"
+        font-size="120"
+        font-weight="900"
+        fill="#4ade80"
+        opacity="0.75"
+        transform="rotate(-10 760 560)">z</text>
+  <text x="860" y="480"
+        font-family="'Arial Rounded MT Bold', Arial, sans-serif"
+        font-size="80"
+        font-weight="900"
+        fill="#4ade80"
+        opacity="0.5"
+        transform="rotate(-10 860 480)">z</text>
+</svg>

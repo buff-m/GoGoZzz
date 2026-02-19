@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="moonGrad" cx="30%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#a8edbc"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 月牙 -->
+  <circle cx="400" cy="520" r="260" fill="url(#moonGrad)"/>
+  <circle cx="510" cy="455" r="228" fill="#0d1628"/>
+
+  <!-- 星星 -->
+  <circle cx="720" cy="240" r="12" fill="#ffffff" opacity="0.9"/>
+  <circle cx="790" cy="320" r="7" fill="#ffffff" opacity="0.6"/>
+  <circle cx="820" cy="195" r="5" fill="#ffffff" opacity="0.5"/>
+  <circle cx="675" cy="175" r="6" fill="#a8edbc" opacity="0.8"/>
+
+  <!-- Zzz -->
+  <text x="600" y="670"
+        font-family="Arial, sans-serif"
+        font-size="190" font-weight="900"
+        fill="#4ade80"
+        transform="rotate(-10 600 670)">Z</text>
+  <text x="760" y="565"
+        font-family="Arial, sans-serif"
+        font-size="125" font-weight="900"
+        fill="#4ade80" opacity="0.75"
+        transform="rotate(-10 760 565)">z</text>
+  <text x="868" y="478"
+        font-family="Arial, sans-serif"
+        font-size="85" font-weight="900"
+        fill="#4ade80" opacity="0.5"
+        transform="rotate(-10 868 478)">z</text>
+</svg>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 月牙大圆 -->
+    <path
+        android:fillColor="#4ade80"
+        android:pathData="M43,54
+            m-24,0
+            a24,24 0 1,0 48,0
+            a24,24 0 1,0 -48,0"/>
+
+    <!-- 月牙遮罩圆（用背景色挖去，形成月牙） -->
+    <path
+        android:fillColor="#0d1628"
+        android:pathData="M53,48
+            m-21,0
+            a21,21 0 1,0 42,0
+            a21,21 0 1,0 -42,0"/>
+
+    <!-- 星星点缀 -->
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M72,24 m-1,0 a1,1 0 1,0 2,0 a1,1 0 1,0 -2,0"/>
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M80,32 m-0.6,0 a0.6,0.6 0 1,0 1.2,0 a0.6,0.6 0 1,0 -1.2,0"/>
+    <path
+        android:fillColor="#a8edbc"
+        android:pathData="M68,18 m-0.5,0 a0.5,0.5 0 1,0 1,0 a0.5,0.5 0 1,0 -1,0"/>
+
+    <!-- Z 大 -->
+    <path
+        android:fillColor="#4ade80"
+        android:pathData="M60,72 L70,72 L60,82 L70,82"
+        android:strokeWidth="2.5"
+        android:strokeColor="#4ade80"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"/>
+
+    <!-- z 中 -->
+    <path
+        android:fillColor="#4ade80"
+        android:pathData="M70,62 L77,62 L70,70 L77,70"
+        android:strokeWidth="2"
+        android:strokeColor="#4ade80"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillAlpha="0.75"/>
+
+    <!-- z 小 -->
+    <path
+        android:fillColor="#4ade80"
+        android:pathData="M78,54 L83,54 L78,60 L83,60"
+        android:strokeWidth="1.5"
+        android:strokeColor="#4ade80"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillAlpha="0.5"/>
+
+</vector>

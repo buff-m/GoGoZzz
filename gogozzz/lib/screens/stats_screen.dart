@@ -203,6 +203,20 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     });
   }
 
+  /// 格式化极值显示日期时间
+  /// 凌晨 00:00-05:59 的记录，实际打卡日期是归属日期+1天
+  String _formatActualDateTime(String date, String time) {
+    final parts = time.split(':');
+    final hour = int.parse(parts[0]);
+
+    // 凌晨 00:00-05:59 的记录，实际打卡日期是归属日期+1天
+    if (hour < 6) {
+      final actualDate = DateTime.parse(date).add(const Duration(days: 1));
+      return '${AppDateUtils.formatDate(actualDate)} $time';
+    }
+    return '$date $time';
+  }
+
   Widget _buildExtremeRecords(MonthlyStats stats) {
     if (!stats.hasRecords) {
       return Container(
@@ -262,7 +276,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               icon: Icons.wb_sunny_outlined,
               iconColor: AppTheme.levelColors[1],
               label: '最早入睡',
-              time: '${stats.earliestDate} ${stats.earliestTime}',
+              time: _formatActualDateTime(stats.earliestDate!, stats.earliestTime!),
             ),
           if (stats.earliestTime != null && stats.latestTime != null)
             Padding(
@@ -277,7 +291,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               icon: Icons.nightlight_round,
               iconColor: AppTheme.levelColors[6],
               label: '最晚入睡',
-              time: '${stats.latestDate} ${stats.latestTime}',
+              time: _formatActualDateTime(stats.latestDate!, stats.latestTime!),
             ),
         ],
       ),

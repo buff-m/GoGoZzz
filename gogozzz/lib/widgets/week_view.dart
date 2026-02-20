@@ -46,7 +46,7 @@ class WeekView extends StatelessWidget {
           Row(
             children: dates.map((date) {
               final record = records.where((r) => r.date == date).firstOrNull;
-              final isToday = AppDateUtils.isToday(date);
+              final isToday = AppDateUtils.isCurrentBelongDate(date);
               return Expanded(
                 child: Center(child: _buildDateBlock(date, record, isToday)),
               );

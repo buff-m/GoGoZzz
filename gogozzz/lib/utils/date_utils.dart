@@ -120,6 +120,26 @@ class AppDateUtils {
     return dateStr == getTodayString();
   }
 
+  /// 获取当前打卡归属日期
+  /// 规则：凌晨 00:00-05:59 归属前一天，18:00-23:59 归属当天
+  static String getBelongDateString([DateTime? dateTime]) {
+    final now = dateTime ?? DateTime.now();
+    final hour = now.hour;
+
+    // 凌晨 00:00 - 05:59，归属到前一天
+    if (hour < 6) {
+      final yesterday = now.subtract(const Duration(days: 1));
+      return _dateFormat.format(yesterday);
+    }
+    // 其他时间（18:00 - 23:59），归属到当天
+    return _dateFormat.format(now);
+  }
+
+  /// 判断指定日期是否是"当前归属日期"（用于UI高亮）
+  static bool isCurrentBelongDate(String dateStr) {
+    return dateStr == getBelongDateString();
+  }
+
   /// 判断是否超过打卡时间范围（18:00-次日06:00）
   static bool isInClockTimeRange(DateTime time) {
     final hour = time.hour;

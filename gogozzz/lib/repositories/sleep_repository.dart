@@ -130,16 +130,26 @@ class SleepRepository {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-  /// 比较时间字符串（HH:mm）
+  /// 比较时间字符串（HH:mm），考虑跨天睡眠逻辑
+  /// 将时间映射为相对于 18:00 的偏移量
   int _compareTime(String time1, String time2) {
-    final t1 = time1.split(':');
-    final t2 = time2.split(':');
-    final h1 = int.parse(t1[0]);
-    final m1 = int.parse(t1[1]);
-    final h2 = int.parse(t2[0]);
-    final m2 = int.parse(t2[1]);
+    final offset1 = _getSleepTimeOffset(time1);
+    final offset2 = _getSleepTimeOffset(time2);
+    return offset1 - offset2;
+  }
 
-    if (h1 != h2) return h1 - h2;
-    return m1 - m2;
+  /// 获取睡眠时间偏移量（相对于18:00）
+  /// 18:00-23:59 → 0-359 分钟
+  /// 00:00-05:59 → 360-719 分钟
+  int _getSleepTimeOffset(String time) {
+    final parts = time.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+
+    if (hour >= 18) {
+      return (hour - 18) * 60 + minute;
+    } else {
+      return (hour + 6) * 60 + minute;
+    }
   }
 }

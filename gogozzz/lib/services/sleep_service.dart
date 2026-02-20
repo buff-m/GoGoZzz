@@ -19,11 +19,11 @@ class SleepService {
       throw Exception('不在打卡时间范围内 (18:00 - 次日06:00)');
     }
 
-    // 检查是否已打卡
-    final today = AppDateUtils.getTodayString();
-    final existing = await _sleepRepository.getByDate(today);
+    // 检查是否已打卡（使用归属日期）
+    final belongDate = AppDateUtils.getBelongDateString();
+    final existing = await _sleepRepository.getByDate(belongDate);
     if (existing != null) {
-      throw Exception('今日已打卡');
+      throw Exception('该日期已打卡');
     }
 
     // 获取用户设置
@@ -38,7 +38,7 @@ class SleepService {
 
     // 创建记录
     final record = SleepRecord(
-      date: today,
+      date: belongDate,
       time: timeStr,
       level: level,
       createdAt: now.toIso8601String(),
@@ -55,10 +55,10 @@ class SleepService {
     return LevelUtils.isClockTimeValidForTime(time);
   }
 
-  /// 获取今日打卡记录
+  /// 获取当前归属日期的打卡记录
   Future<SleepRecord?> getTodayRecord() async {
-    final today = AppDateUtils.getTodayString();
-    return await _sleepRepository.getByDate(today);
+    final belongDate = AppDateUtils.getBelongDateString();
+    return await _sleepRepository.getByDate(belongDate);
   }
 
   /// 获取最近N天记录

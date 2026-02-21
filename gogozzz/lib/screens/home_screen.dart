@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../config/theme.dart';
 import '../providers/sleep_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/clock_button.dart';
 import '../widgets/week_view.dart';
+import '../widgets/sleep_record_bottom_sheet.dart';
 import '../utils/level_utils.dart';
 
 /// 首页
@@ -95,12 +97,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildClockButton(SleepState sleepState) {
+    final normalTime = ref.watch(normalTimeProvider);
     final now = DateTime.now();
     final isValidTime = LevelUtils.isClockTimeValidForTime(now);
 
     ClockButtonState buttonState;
     if (sleepState.todayRecord != null) {
-      buttonState = ClockButtonClocked(sleepState.todayRecord!.time);
+      buttonState = ClockButtonClocked(sleepState.todayRecord!.time, normalTime);
     } else if (!isValidTime) {
       buttonState = ClockButtonDisabled();
     } else {
@@ -182,6 +185,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildWeekSection(SleepState sleepState) {
+    final normalTime = ref.watch(normalTimeProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -198,7 +202,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
-          WeekView(records: sleepState.recentRecords),
+          WeekView(
+            records: sleepState.recentRecords,
+            normalTime: normalTime,
+            onDayTap: (date, record) {
+              SleepRecordBottomSheet.show(
+                context: context,
+                date: date,
+                record: record,
+                normalTime: normalTime,
+              );
+            },
+          ),
         ],
       ),
     );

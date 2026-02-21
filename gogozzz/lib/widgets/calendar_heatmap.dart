@@ -8,14 +8,18 @@ class CalendarHeatmap extends StatelessWidget {
   final int year;
   final int month;
   final List<SleepRecord> records;
+  final String normalTime;
   final void Function(int year, int month)? onMonthChanged;
+  final void Function(String date, SleepRecord? record)? onDayTap;
 
   const CalendarHeatmap({
     super.key,
     required this.year,
     required this.month,
     required this.records,
+    required this.normalTime,
     this.onMonthChanged,
+    this.onDayTap,
   });
 
   @override
@@ -135,7 +139,7 @@ class CalendarHeatmap extends StatelessWidget {
             padding: const EdgeInsets.all(2.5),
             child: AspectRatio(
               aspectRatio: 1,
-              child: _buildDayCell(day, record, isToday),
+              child: _buildDayCell(day, record, isToday, dateStr),
             ),
           ),
         ),
@@ -164,46 +168,52 @@ class CalendarHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildDayCell(int day, SleepRecord? record, bool isToday) {
+  Widget _buildDayCell(int day, SleepRecord? record, bool isToday, String dateStr) {
     Color bgColor;
     Color textColor;
 
     if (record != null) {
-      bgColor = AppTheme.getLevelColor(record.level);
+      bgColor = record.getColor(normalTime);
       textColor = Colors.black.withValues(alpha: 0.7);
     } else {
       bgColor = AppTheme.backgroundCardLight;
       textColor = AppTheme.textTertiary;
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bgColor,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onDayTap?.call(dateStr, record),
         borderRadius: BorderRadius.circular(7),
-        border: isToday
-            ? Border.all(
-                color: Colors.white.withValues(alpha: 0.5),
-                width: 1.5,
-              )
-            : null,
-        boxShadow: record != null
-            ? [
-                BoxShadow(
-                  color: AppTheme.getLevelColor(record.level)
-                      .withValues(alpha: 0.25),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ]
-            : null,
-      ),
-      child: Center(
-        child: Text(
-          day.toString(),
-          style: TextStyle(
-            fontSize: 11,
-            color: textColor,
-            fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+        child: Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(7),
+            border: isToday
+                ? Border.all(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    width: 1.5,
+                  )
+                : null,
+            boxShadow: record != null
+                ? [
+                    BoxShadow(
+                      color: record.getColor(normalTime).withValues(alpha: 0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              day.toString(),
+              style: TextStyle(
+                fontSize: 11,
+                color: textColor,
+                fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ),

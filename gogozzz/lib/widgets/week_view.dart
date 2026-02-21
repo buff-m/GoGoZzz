@@ -7,8 +7,15 @@ import '../utils/constants.dart';
 /// 最近7天视图组件
 class WeekView extends StatelessWidget {
   final List<SleepRecord> records;
+  final String normalTime;
+  final void Function(String date, SleepRecord? record)? onDayTap;
 
-  const WeekView({super.key, required this.records});
+  const WeekView({
+    super.key,
+    required this.records,
+    required this.normalTime,
+    this.onDayTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -65,43 +72,49 @@ class WeekView extends StatelessWidget {
     Color textColor;
 
     if (record != null) {
-      bgColor = AppTheme.getLevelColor(record.level);
+      bgColor = record.getColor(normalTime);
       textColor = Colors.black.withValues(alpha: 0.75);
     } else {
       bgColor = AppTheme.backgroundCardLight;
       textColor = AppTheme.textTertiary;
     }
 
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: bgColor,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onDayTap?.call(date, record),
         borderRadius: BorderRadius.circular(10),
-        border: isToday
-            ? Border.all(
-                color: Colors.white.withValues(alpha: 0.4),
-                width: 1.5,
-              )
-            : null,
-        boxShadow: record != null
-            ? [
-                BoxShadow(
-                  color: AppTheme.getLevelColor(record.level)
-                      .withValues(alpha: 0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Center(
-        child: Text(
-          day,
-          style: TextStyle(
-            fontSize: 12,
-            color: textColor,
-            fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(10),
+            border: isToday
+                ? Border.all(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    width: 1.5,
+                  )
+                : null,
+            boxShadow: record != null
+                ? [
+                    BoxShadow(
+                      color: record.getColor(normalTime).withValues(alpha: 0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              day,
+              style: TextStyle(
+                fontSize: 12,
+                color: textColor,
+                fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ),

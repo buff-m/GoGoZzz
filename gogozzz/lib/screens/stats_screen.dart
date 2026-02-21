@@ -4,9 +4,11 @@ import '../config/theme.dart';
 import '../models/monthly_stats.dart';
 import '../models/sleep_record.dart';
 import '../providers/sleep_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/calendar_heatmap.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/trend_chart.dart';
+import '../widgets/sleep_record_bottom_sheet.dart';
 import '../utils/date_utils.dart';
 
 /// 统计页面
@@ -167,6 +169,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Widget _buildCalendarWithData(MonthlyStats stats) {
+    final normalTime = ref.watch(normalTimeProvider);
     final records = <String, SleepRecord>{};
     final recentRecords = ref.read(sleepProvider).recentRecords;
     for (final record in recentRecords) {
@@ -181,7 +184,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       year: _currentYear,
       month: _currentMonth,
       records: records.values.toList(),
+      normalTime: normalTime,
       onMonthChanged: _onMonthChanged,
+      onDayTap: (date, record) {
+        SleepRecordBottomSheet.show(
+          context: context,
+          date: date,
+          record: record,
+          normalTime: normalTime,
+        );
+      },
     );
   }
 

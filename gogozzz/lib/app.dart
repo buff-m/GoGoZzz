@@ -17,21 +17,15 @@ class GoGoZzzApp extends ConsumerWidget {
     initialLocation: '/',
     routes: [
       ShellRoute(
-        builder: (context, state, child) => MainShell(child: child),
+        builder: (context, state, child) => const MainShell(),
         routes: [
           GoRoute(
             path: '/',
-            pageBuilder: (context, state) => NoTransitionPage(
-              child: HomeScreen(
-                onSettingsTap: () => context.push('/settings'),
-              ),
-            ),
+            builder: (context, state) => const SizedBox.shrink(),
           ),
           GoRoute(
             path: '/stats',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: StatsScreen(),
-            ),
+            builder: (context, state) => const SizedBox.shrink(),
           ),
         ],
       ),
@@ -68,23 +62,46 @@ class GoGoZzzApp extends ConsumerWidget {
   }
 }
 
-/// 主Shell（带底部导航）
-class MainShell extends StatefulWidget {
-  final Widget child;
-
-  const MainShell({super.key, required this.child});
+/// 主Shell（带底部导航，支持滑动切换）
+class MainShell extends ConsumerStatefulWidget {
+  const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> {
+  late final PageController _pageController;
   int _currentIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final colors = ref.watch(themeColorsProvider);
+
     return Scaffold(
-      body: widget.child,
+      backgroundColor: colors.background,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: _onPageChanged,
+        children: [
+          HomeScreen(
+            onSettingsTap: () => context.push('/settings'),
+          ),
+          const StatsScreen(),
+        ],
+      ),
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
@@ -92,18 +109,17 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  void _onTabTapped(int index) {
+  void _onPageChanged(int index) {
     setState(() {
       _currentIndex = index;
     });
+  }
 
-    switch (index) {
-      case 0:
-        context.go('/');
-        break;
-      case 1:
-        context.go('/stats');
-        break;
-    }
+  void _onTabTapped(int index) {
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 }

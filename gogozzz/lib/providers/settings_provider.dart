@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../config/theme_colors.dart';
 import '../models/user_settings.dart';
 import '../services/database_service.dart';
 import '../repositories/settings_repository.dart';
@@ -31,6 +33,16 @@ class SettingsNotifier extends StateNotifier<AsyncValue<UserSettings>> {
       state = AsyncValue.error(e, st);
     }
   }
+
+  /// 更新主题模式
+  Future<void> updateThemeMode(AppThemeMode themeMode) async {
+    try {
+      await _repository.updateThemeMode(themeMode);
+      await loadSettings();
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
 }
 
 /// 数据库服务 Provider
@@ -58,4 +70,36 @@ final normalTimeProvider = Provider<String>((ref) {
     data: (s) => s.normalTime,
     orElse: () => '23:00',
   );
+});
+
+/// 主题模式 Provider
+final themeModeProvider = Provider<AppThemeMode>((ref) {
+  final settings = ref.watch(settingsProvider);
+  return settings.maybeWhen(
+    data: (s) => s.themeMode,
+    orElse: () => AppThemeMode.dark,
+  );
+});
+
+/// Flutter ThemeMode Provider（用于 MaterialApp）
+final flutterThemeModeProvider = Provider<ThemeMode>((ref) {
+  final appMode = ref.watch(themeModeProvider);
+  switch (appMode) {
+    case AppThemeMode.light:
+      return ThemeMode.light;
+    case AppThemeMode.dark:
+      return ThemeMode.dark;
+  }
+});
+
+/// 当前主题颜色 Provider
+final themeColorsProvider = Provider<AppThemeColors>((ref) {
+  final appMode = ref.watch(themeModeProvider);
+
+  switch (appMode) {
+    case AppThemeMode.light:
+      return const LightThemeColors();
+    case AppThemeMode.dark:
+      return const DarkThemeColors();
+  }
 });

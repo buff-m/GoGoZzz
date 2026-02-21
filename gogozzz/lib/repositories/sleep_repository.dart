@@ -2,6 +2,7 @@ import '../models/sleep_record.dart';
 import '../models/monthly_stats.dart';
 import '../services/database_service.dart';
 import '../utils/constants.dart';
+import '../utils/level_utils.dart';
 
 /// 打卡记录数据访问层
 class SleepRepository {
@@ -61,7 +62,12 @@ class SleepRepository {
   }
 
   /// 获取月度统计
-  Future<MonthlyStats> getMonthlyStats(int year, int month) async {
+  /// [normalTime] 正常睡觉时间，用于动态计算熬夜天数
+  Future<MonthlyStats> getMonthlyStats(
+    int year,
+    int month, {
+    String normalTime = '23:00',
+  }) async {
     final db = await _dbService.database;
 
     // 获取当月第一天和最后一天
@@ -80,7 +86,9 @@ class SleepRepository {
 
     final records = results.map((map) => SleepRecord.fromMap(map)).toList();
     final clockedDays = records.length;
-    final lateDays = records.where((r) => r.level >= 7).length;
+    // 动态计算熬夜天数
+    final lateDays =
+        records.where((r) => LevelUtils.calculateLevel(r.time, normalTime) >= 7).length;
 
     // 查找最早和最晚记录
     String? earliestTime;

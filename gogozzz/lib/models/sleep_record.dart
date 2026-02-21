@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+import '../config/theme.dart';
+import '../utils/level_utils.dart';
+
 /// 打卡记录模型
 class SleepRecord {
   final int? id;
@@ -51,6 +55,23 @@ class SleepRecord {
       level: level ?? this.level,
       createdAt: createdAt ?? this.createdAt,
     );
+  }
+
+  // ========== 动态计算方法 ==========
+
+  /// 根据指定的正常睡觉时间动态计算颜色级别
+  int getLevel(String normalTime) {
+    return LevelUtils.calculateLevel(time, normalTime);
+  }
+
+  /// 判断是否熬夜（基于动态计算）
+  bool isLate(String normalTime) {
+    return getLevel(normalTime) >= 7;
+  }
+
+  /// 获取动态颜色
+  Color getColor(String normalTime) {
+    return AppTheme.getLevelColor(getLevel(normalTime));
   }
 
   @override

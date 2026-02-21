@@ -43,4 +43,18 @@ class SettingsRepository {
       whereArgs: [1],
     );
   }
+
+  /// 更新主题模式
+  Future<void> updateThemeMode(AppThemeMode themeMode) async {
+    final db = await _dbService.database;
+    await db.update(
+      AppConstants.tableUserSettings,
+      {
+        'theme_mode': themeMode.name,
+        'updated_at': DateTime.now().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [1],
+    );
+  }
 }

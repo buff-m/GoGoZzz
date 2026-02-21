@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../config/theme_colors.dart';
 import '../models/sleep_record.dart';
+import '../providers/settings_provider.dart';
 import '../utils/date_utils.dart';
 import '../utils/constants.dart';
 
 /// 最近7天视图组件
-class WeekView extends StatelessWidget {
+class WeekView extends ConsumerWidget {
   final List<SleepRecord> records;
   final String normalTime;
   final void Function(String date, SleepRecord? record)? onDayTap;
@@ -18,15 +20,16 @@ class WeekView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(themeColorsProvider);
     final dates = AppDateUtils.getDateRange(AppConstants.weekViewDays);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
       decoration: BoxDecoration(
-        color: AppTheme.backgroundCard,
+        color: colors.backgroundCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor, width: 0.5),
+        border: Border.all(color: colors.border, width: 0.5),
       ),
       child: Column(
         children: [
@@ -38,9 +41,9 @@ class WeekView extends StatelessWidget {
                 child: Center(
                   child: Text(
                     AppDateUtils.getWeekdayShort(dt.weekday),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppTheme.textTertiary,
+                      color: colors.textTertiary,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -55,7 +58,7 @@ class WeekView extends StatelessWidget {
               final record = records.where((r) => r.date == date).firstOrNull;
               final isToday = AppDateUtils.isCurrentBelongDate(date);
               return Expanded(
-                child: Center(child: _buildDateBlock(date, record, isToday)),
+                child: Center(child: _buildDateBlock(date, record, isToday, colors)),
               );
             }).toList(),
           ),
@@ -64,7 +67,7 @@ class WeekView extends StatelessWidget {
     );
   }
 
-  Widget _buildDateBlock(String date, SleepRecord? record, bool isToday) {
+  Widget _buildDateBlock(String date, SleepRecord? record, bool isToday, AppThemeColors colors) {
     final dt = AppDateUtils.parseDate(date);
     final day = dt.day.toString();
 
@@ -75,8 +78,8 @@ class WeekView extends StatelessWidget {
       bgColor = record.getColor(normalTime);
       textColor = Colors.black.withValues(alpha: 0.75);
     } else {
-      bgColor = AppTheme.backgroundCardLight;
-      textColor = AppTheme.textTertiary;
+      bgColor = colors.backgroundCardLight;
+      textColor = colors.textTertiary;
     }
 
     return Material(

@@ -1,4 +1,3 @@
-import '../config/theme.dart';
 import 'constants.dart';
 import 'date_utils.dart';
 
@@ -42,11 +41,6 @@ class LevelUtils {
     if (level < 1) return 0;
     if (level > 7) return 6;
     return level - 1;
-  }
-
-  /// 获取级别对应的 Color
-  static int getLevelColorValue(int level) {
-    return AppTheme.levelColors[getLevelColorIndex(level)].value;
   }
 
   /// 判断是否是熬夜（级别 >= 7）

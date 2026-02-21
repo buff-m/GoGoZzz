@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../config/theme_colors.dart';
 import '../models/sleep_record.dart';
+import '../providers/settings_provider.dart';
 import '../utils/date_utils.dart';
 import '../utils/level_utils.dart';
 
@@ -27,7 +29,7 @@ class SleepRecordBottomSheet {
   }
 }
 
-class _SleepRecordBottomSheetContent extends StatelessWidget {
+class _SleepRecordBottomSheetContent extends ConsumerWidget {
   final String date;
   final SleepRecord? record;
   final String normalTime;
@@ -39,11 +41,13 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(themeColorsProvider);
+
     return Container(
-      decoration: const BoxDecoration(
-        color: AppTheme.backgroundCard,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: colors.backgroundCard,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -54,22 +58,22 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppTheme.textTertiary.withValues(alpha: 0.5),
+              color: colors.textTertiary.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(20),
             child: record != null
-                ? _buildRecordContent()
-                : _buildEmptyContent(),
+                ? _buildRecordContent(colors)
+                : _buildEmptyContent(colors),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRecordContent() {
+  Widget _buildRecordContent(AppThemeColors colors) {
     final level = record!.getLevel(normalTime);
     final levelColor = record!.getColor(normalTime);
     final description = LevelUtils.getLevelDescription(level, normalTime);
@@ -80,16 +84,16 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 日期标题
-        _buildDateHeader(),
+        _buildDateHeader(colors),
         const SizedBox(height: 20),
 
         // 打卡信息卡片
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppTheme.backgroundCardLight,
+            color: colors.backgroundCardLight,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor, width: 0.5),
+            border: Border.all(color: colors.border, width: 0.5),
           ),
           child: Row(
             children: [
@@ -116,10 +120,10 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
                   children: [
                     Text(
                       record!.time,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -136,7 +140,7 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
               ),
 
               // 级别指示器
-              _buildLevelIndicator(level),
+              _buildLevelIndicator(level, colors),
             ],
           ),
         ),
@@ -150,24 +154,24 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyContent() {
+  Widget _buildEmptyContent(AppThemeColors colors) {
     return Column(
       children: [
-        _buildDateHeader(),
+        _buildDateHeader(colors),
         const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppTheme.backgroundCardLight,
+            color: colors.backgroundCardLight,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.borderColor, width: 0.5),
+            border: Border.all(color: colors.border, width: 0.5),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.history_toggle_off_rounded,
-                color: AppTheme.textTertiary,
+                color: colors.textTertiary,
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -175,7 +179,7 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
                 '该日未打卡',
                 style: TextStyle(
                   fontSize: 15,
-                  color: AppTheme.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ),
             ],
@@ -186,14 +190,14 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
           '打卡时间：18:00 - 次日 06:00',
           style: TextStyle(
             fontSize: 12,
-            color: AppTheme.textTertiary.withValues(alpha: 0.7),
+            color: colors.textTertiary.withValues(alpha: 0.7),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDateHeader() {
+  Widget _buildDateHeader(AppThemeColors colors) {
     final dateTime = AppDateUtils.parseDate(date);
     final weekday = AppDateUtils.getWeekdayChinese(dateTime);
     final isToday = AppDateUtils.isToday(date);
@@ -202,24 +206,24 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
       children: [
         Text(
           '${dateTime.month}月${dateTime.day}日',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(width: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: AppTheme.backgroundCardLight,
+            color: colors.backgroundCardLight,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
             weekday,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ),
@@ -228,14 +232,14 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: AppTheme.levelColors[3].withValues(alpha: 0.2),
+              color: AppThemeColors.levelColors[3].withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               '今天',
               style: TextStyle(
                 fontSize: 11,
-                color: AppTheme.levelColors[3],
+                color: AppThemeColors.levelColors[3],
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -245,7 +249,7 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
     );
   }
 
-  Widget _buildLevelIndicator(int level) {
+  Widget _buildLevelIndicator(int level, AppThemeColors colors) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(7, (index) {
@@ -257,8 +261,8 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isActive
-                ? AppTheme.getLevelColor(index + 1)
-                : AppTheme.textTertiary.withValues(alpha: 0.3),
+                ? AppThemeColors.getLevelColor(index + 1)
+                : colors.textTertiary.withValues(alpha: 0.3),
           ),
         );
       }),
@@ -267,7 +271,7 @@ class _SleepRecordBottomSheetContent extends StatelessWidget {
 
   Widget _buildOffsetInfo(int offset, String offsetText) {
     final isLate = offset > 0;
-    final color = isLate ? AppTheme.levelColors[5] : AppTheme.levelColors[1];
+    final color = isLate ? AppThemeColors.levelColors[5] : AppThemeColors.levelColors[1];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

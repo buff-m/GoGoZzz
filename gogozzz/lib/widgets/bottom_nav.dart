@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../config/theme_colors.dart';
+import '../providers/settings_provider.dart';
 
 /// 底部导航组件
-class BottomNavBar extends StatelessWidget {
+class BottomNavBar extends ConsumerWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
@@ -13,12 +15,14 @@ class BottomNavBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(themeColorsProvider);
+
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.backgroundDarker,
-        border: const Border(
-          top: BorderSide(color: AppTheme.borderColor, width: 0.5),
+        color: colors.backgroundSecondary,
+        border: Border(
+          top: BorderSide(color: colors.border, width: 0.5),
         ),
       ),
       child: SafeArea(
@@ -32,12 +36,14 @@ class BottomNavBar extends StatelessWidget {
                 icon: Icons.home_rounded,
                 activeIcon: Icons.home_rounded,
                 label: '首页',
+                colors: colors,
               ),
               _buildNavItem(
                 index: 1,
                 icon: Icons.bar_chart_rounded,
                 activeIcon: Icons.bar_chart_rounded,
                 label: '统计',
+                colors: colors,
               ),
             ],
           ),
@@ -51,6 +57,7 @@ class BottomNavBar extends StatelessWidget {
     required IconData icon,
     required IconData activeIcon,
     required String label,
+    required AppThemeColors colors,
   }) {
     final isSelected = currentIndex == index;
 
@@ -62,7 +69,7 @@ class BottomNavBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.borderColor.withValues(alpha: 0.6)
+              ? colors.border.withValues(alpha: 0.6)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -73,8 +80,8 @@ class BottomNavBar extends StatelessWidget {
               isSelected ? activeIcon : icon,
               size: 22,
               color: isSelected
-                  ? AppTheme.textPrimary
-                  : AppTheme.textTertiary,
+                  ? colors.textPrimary
+                  : colors.textTertiary,
             ),
             const SizedBox(height: 3),
             Text(
@@ -82,8 +89,8 @@ class BottomNavBar extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 color: isSelected
-                    ? AppTheme.textPrimary
-                    : AppTheme.textTertiary,
+                    ? colors.textPrimary
+                    : colors.textTertiary,
                 fontWeight:
                     isSelected ? FontWeight.w600 : FontWeight.normal,
               ),

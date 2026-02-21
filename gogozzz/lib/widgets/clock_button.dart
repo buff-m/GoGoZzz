@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../config/theme_colors.dart';
+import '../providers/settings_provider.dart';
+import '../utils/level_utils.dart';
 
 /// 打卡按钮状态基类
 sealed class ClockButtonState {}
@@ -10,14 +13,15 @@ class ClockButtonCanClock extends ClockButtonState {}
 /// 已打卡
 class ClockButtonClocked extends ClockButtonState {
   final String time;
-  ClockButtonClocked(this.time);
+  final String normalTime;
+  ClockButtonClocked(this.time, this.normalTime);
 }
 
 /// 禁用
 class ClockButtonDisabled extends ClockButtonState {}
 
 /// 打卡按钮组件
-class ClockButton extends StatefulWidget {
+class ClockButton extends ConsumerStatefulWidget {
   final ClockButtonState state;
   final VoidCallback? onPressed;
 
@@ -32,10 +36,10 @@ class ClockButton extends StatefulWidget {
   });
 
   @override
-  State<ClockButton> createState() => ClockButtonWidgetState();
+  ConsumerState<ClockButton> createState() => ClockButtonWidgetState();
 }
 
-class ClockButtonWidgetState extends State<ClockButton>
+class ClockButtonWidgetState extends ConsumerState<ClockButton>
     with TickerProviderStateMixin {
   // 按压缩放
   late AnimationController _pressController;
@@ -115,6 +119,8 @@ class ClockButtonWidgetState extends State<ClockButton>
 
   @override
   Widget build(BuildContext context) {
+    final colors = ref.watch(themeColorsProvider);
+
     return GestureDetector(
       onTapDown: _isEnabled ? (_) => _pressController.forward() : null,
       onTapUp: _isEnabled
@@ -157,7 +163,7 @@ class ClockButtonWidgetState extends State<ClockButton>
                   ),
                 ),
               // 主按钮
-              _buildButton(),
+              _buildButton(colors),
               // 成功 overlay（短暂显示 ✓）
               if (_showSuccess)
                 AnimatedBuilder(
@@ -191,25 +197,26 @@ class ClockButtonWidgetState extends State<ClockButton>
     );
   }
 
-  Color _getSuccessColor() => AppTheme.levelColors[2]; // 浅绿
+  Color _getSuccessColor() => AppThemeColors.levelColors[2]; // 浅绿
 
-  Widget _buildButton() {
+  Widget _buildButton(AppThemeColors colors) {
     return Container(
       width: 210,
       height: 210,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: _getGradient(),
-        border: Border.all(color: _getBorderColor(), width: 1.5),
-        boxShadow: _getShadows(),
+        gradient: _getGradient(colors),
+        border: Border.all(color: _getBorderColor(colors), width: 1.5),
+        boxShadow: _getShadows(colors),
       ),
-      child: Center(child: _buildContent()),
+      child: Center(child: _buildContent(colors)),
     );
   }
 
-  List<BoxShadow> _getShadows() {
+  List<BoxShadow> _getShadows(AppThemeColors colors) {
     if (widget.state is ClockButtonClocked) {
-      final color = _getLevelColor((widget.state as ClockButtonClocked).time);
+      final clocked = widget.state as ClockButtonClocked;
+      final color = _getLevelColor(clocked.time, clocked.normalTime);
       return [
         BoxShadow(
           color: color.withValues(alpha: 0.25),
@@ -246,9 +253,10 @@ class ClockButtonWidgetState extends State<ClockButton>
     ];
   }
 
-  LinearGradient _getGradient() {
+  LinearGradient _getGradient(AppThemeColors colors) {
     if (widget.state is ClockButtonClocked) {
-      final color = _getLevelColor((widget.state as ClockButtonClocked).time);
+      final clocked = widget.state as ClockButtonClocked;
+      final color = _getLevelColor(clocked.time, clocked.normalTime);
       return LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
@@ -259,40 +267,32 @@ class ClockButtonWidgetState extends State<ClockButton>
       );
     }
     if (widget.state is ClockButtonDisabled) {
-      return const LinearGradient(
-        colors: [Color(0xFF0d1120), Color(0xFF0d1120)],
+      return LinearGradient(
+        colors: [colors.backgroundSecondary, colors.backgroundSecondary],
       );
     }
-    return AppTheme.buttonGradient;
+    return colors.buttonGradient;
   }
 
-  Color _getBorderColor() {
-    if (widget.state is ClockButtonClocked) {
-      return _getLevelColor((widget.state as ClockButtonClocked).time)
-          .withValues(alpha: 0.6);
-    }
-    if (widget.state is ClockButtonDisabled) return AppTheme.disabledColor;
-    return AppTheme.borderColorLight;
-  }
-
-  Color _getLevelColor(String time) {
-    final parts = time.split(':');
-    final hour = int.parse(parts[0]);
-    final minute = int.parse(parts[1]);
-    final totalMinutes = hour * 60 + minute;
-    if (totalMinutes < 22 * 60 + 20) return AppTheme.levelColors[0];
-    if (totalMinutes < 22 * 60 + 35) return AppTheme.levelColors[1];
-    if (totalMinutes < 22 * 60 + 50) return AppTheme.levelColors[2];
-    if (totalMinutes < 23 * 60 + 10) return AppTheme.levelColors[3];
-    if (totalMinutes < 23 * 60 + 25) return AppTheme.levelColors[4];
-    if (totalMinutes < 23 * 60 + 40) return AppTheme.levelColors[5];
-    return AppTheme.levelColors[6];
-  }
-
-  Widget _buildContent() {
+  Color _getBorderColor(AppThemeColors colors) {
     if (widget.state is ClockButtonClocked) {
       final clocked = widget.state as ClockButtonClocked;
-      final color = _getLevelColor(clocked.time);
+      return _getLevelColor(clocked.time, clocked.normalTime)
+          .withValues(alpha: 0.6);
+    }
+    if (widget.state is ClockButtonDisabled) return colors.disabled;
+    return colors.borderLight;
+  }
+
+  Color _getLevelColor(String time, String normalTime) {
+    final level = LevelUtils.calculateLevel(time, normalTime);
+    return AppThemeColors.getLevelColor(level);
+  }
+
+  Widget _buildContent(AppThemeColors colors) {
+    if (widget.state is ClockButtonClocked) {
+      final clocked = widget.state as ClockButtonClocked;
+      final color = _getLevelColor(clocked.time, clocked.normalTime);
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -325,16 +325,16 @@ class ClockButtonWidgetState extends State<ClockButton>
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.bedtime_off_outlined, size: 36, color: AppTheme.disabledColor),
+          Icon(Icons.bedtime_off_outlined, size: 36, color: colors.disabled),
           const SizedBox(height: 10),
           Text(
             '仅 18:00 - 06:00',
-            style: TextStyle(fontSize: 12, color: AppTheme.textTertiary, letterSpacing: 0.5),
+            style: TextStyle(fontSize: 12, color: colors.textTertiary, letterSpacing: 0.5),
           ),
           const SizedBox(height: 2),
           Text(
             '可打卡',
-            style: TextStyle(fontSize: 12, color: AppTheme.textTertiary),
+            style: TextStyle(fontSize: 12, color: colors.textTertiary),
           ),
         ],
       );
@@ -346,14 +346,14 @@ class ClockButtonWidgetState extends State<ClockButton>
         Icon(
           Icons.nightlight_round,
           size: 40,
-          color: AppTheme.textSecondary.withValues(alpha: 0.7),
+          color: colors.textSecondary.withValues(alpha: 0.7),
         ),
         const SizedBox(height: 10),
         Text(
           '点击打卡',
           style: TextStyle(
             fontSize: 14,
-            color: AppTheme.textSecondary,
+            color: colors.textSecondary,
             fontWeight: FontWeight.w500,
             letterSpacing: 2,
           ),
@@ -363,7 +363,7 @@ class ClockButtonWidgetState extends State<ClockButton>
           '--:--',
           style: TextStyle(
             fontSize: 32,
-            color: AppTheme.textTertiary,
+            color: colors.textTertiary,
             fontWeight: FontWeight.w300,
             letterSpacing: 3,
           ),

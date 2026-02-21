@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import '../config/theme_colors.dart';
 
 /// 统计卡片组件
 class StatCard extends StatelessWidget {
@@ -20,13 +20,13 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor = color ?? AppTheme.textPrimary;
+    final cardColor = color ?? AppThemeColors.levelColors[3];
 
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: AppTheme.backgroundCard,
+          color: color?.withValues(alpha: 0.08) ?? AppThemeColors.levelColors[3].withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: cardColor.withValues(alpha: 0.15),
@@ -96,15 +96,16 @@ class StatCard extends StatelessWidget {
 /// 熬夜天数卡片
 class LateDaysCard extends StatelessWidget {
   final int lateDays;
+  final AppThemeColors colors;
 
-  const LateDaysCard({super.key, required this.lateDays});
+  const LateDaysCard({super.key, required this.lateDays, required this.colors});
 
   @override
   Widget build(BuildContext context) {
     return StatCard(
       title: '熬夜天数',
       value: lateDays,
-      color: AppTheme.levelColors[6],
+      color: AppThemeColors.levelColors[6],
       icon: Icons.nightlight_round,
     );
   }
@@ -113,15 +114,16 @@ class LateDaysCard extends StatelessWidget {
 /// 打卡天数卡片
 class ClockedDaysCard extends StatelessWidget {
   final int clockedDays;
+  final AppThemeColors colors;
 
-  const ClockedDaysCard({super.key, required this.clockedDays});
+  const ClockedDaysCard({super.key, required this.clockedDays, required this.colors});
 
   @override
   Widget build(BuildContext context) {
     return StatCard(
       title: '打卡天数',
       value: clockedDays,
-      color: AppTheme.levelColors[2],
+      color: AppThemeColors.levelColors[2],
       icon: Icons.check_circle_outline,
     );
   }

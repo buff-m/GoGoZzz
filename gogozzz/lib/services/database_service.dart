@@ -27,8 +27,9 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // 版本号升级到 2
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -50,11 +51,12 @@ class DatabaseService {
       'CREATE INDEX idx_sleep_records_date ON sleep_records(date)',
     );
 
-    // 创建用户设置表
+    // 创建用户设置表（包含 theme_mode）
     await db.execute('''
       CREATE TABLE user_settings (
         id INTEGER PRIMARY KEY,
         normal_time TEXT NOT NULL DEFAULT '23:00',
+        theme_mode TEXT NOT NULL DEFAULT 'dark',
         updated_at TEXT NOT NULL
       )
     ''');
@@ -63,8 +65,19 @@ class DatabaseService {
     await db.insert('user_settings', {
       'id': 1,
       'normal_time': '23:00',
+      'theme_mode': 'dark',
       'updated_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  /// 数据库升级迁移
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // 版本 1 → 2: 添加 theme_mode 列
+      await db.execute('''
+        ALTER TABLE user_settings ADD COLUMN theme_mode TEXT NOT NULL DEFAULT 'dark'
+      ''');
+    }
   }
 
   /// 关闭数据库

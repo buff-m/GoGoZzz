@@ -1,83 +1,154 @@
 # CLAUDE.md
 
-本文档为 Claude Code (claude.ai/code) 在本项目中工作时提供指导。
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## 项目概述
 
-**GoGoZzz** - 睡觉时间记录应用，帮助用户培养早睡习惯。
+**GoGoZzz** - 睡眠时间记录应用，帮助用户培养早睡习惯。
+
+⚠️ **注意**：Flutter 代码位于 `gogozzz/` 子目录下，执行 Flutter 命令需先进入该目录。
 
 ## 技术栈
 
-- **框架**：Flutter (优先 Android)
-- **存储**：SQLite（本地数据库）
-- **分享**：screenshot + share_plus 生成图片
-
-## 项目状态
-
-本项目处于规划阶段，已有以下文档：
-
-- `docs/requirements.md` - 完整需求文档
-- `sleep_app_sketch.html` - UI 草图
-
-## 目录结构
-
-标准 Flutter Clean Architecture：
-- `lib/` - Dart 源代码
-- `lib/models/` - 数据模型
-- `lib/screens/` - 页面
-- `lib/widgets/` - 复用组件
-- `lib/services/` - 业务逻辑服务
-- `lib/utils/` - 工具函数
-
-## 核心功能
-
-1. **打卡按钮**：点击记录睡觉时间（仅限 18:00 - 次日 06:00）
-2. **7级颜色系统**：根据用户设定的正常睡觉时间，显示7种颜色
-3. **日历热力图**：月度视图展示睡眠规律
-4. **统计数据**：熬夜天数、最早/最晚记录、月度趋势对比
-5. **分享功能**：生成微信长图（统计+热力图）
-
-## 颜色方案
-
-深色主题 + 7级渐变色：
-- 1-3级：绿色系（早睡）
-- 4级：黄绿色（正常）
-- 5-6级：黄色/橙色（略晚）
-- 7级：红色（熬夜）
-- 未打卡：白色
+- **框架**：Flutter (Android 优先)
+- **状态管理**：Riverpod (flutter_riverpod)
+- **数据库**：SQLite (sqflite)
+- **路由**：go_router (ShellRoute 结构)
+- **分享**：share_plus + screenshot
 
 ## 常用命令
 
 ```bash
-# Flutter 命令（项目初始化后）
-flutter pub get    # 安装依赖
-flutter run        # 运行项目
-flutter build apk  # 构建 Android APK
+cd gogozzz                     # 进入项目目录
+flutter pub get                # 安装依赖
+flutter run                    # 调试运行
+flutter build apk --release    # 构建 Release APK
+flutter analyze                # 静态分析
+flutter test                   # 运行测试
 ```
 
-## 数据库设计
+## 架构概览
 
-### sleep_records 表（打卡记录）
+```
+gogozzz/lib/
+├── main.dart, app.dart           # 入口 + 路由 + 主题
+├── config/
+│   ├── theme.dart                # ThemeData 配置
+│   └── theme_colors.dart         # 抽象主题颜色接口 + 深色/浅色实现
+├── models/                       # 数据模型 (含动态计算方法)
+├── providers/                    # Riverpod 状态管理
+├── repositories/                 # 数据访问层 (CRUD)
+├── services/                     # 业务逻辑层
+├── utils/                        # 工具类
+├── screens/                      # 页面
+└── widgets/                      # 复用组件
+```
+
+### 数据流
+
+```
+UI (ref.read/notifier) → Notifier → Service (业务逻辑) → Repository → DatabaseService (SQLite)
+```
+
+### Provider 依赖链
+
+```
+databaseServiceProvider
+    → sleepRepositoryProvider / settingsRepositoryProvider
+        → sleepServiceProvider
+            → sleepProvider (StateNotifier)
+
+settingsRepositoryProvider
+    → settingsProvider
+        → normalTimeProvider / themeModeProvider / themeColorsProvider
+```
+
+### 路由结构
+
+使用 `ShellRoute` 实现底部导航常驻：
+- `/` - 首页 (HomeScreen)
+- `/stats` - 统计页 (StatsScreen)
+- `/settings` - 设置页 (独立页面，无底部导航)
+
+## 核心设计
+
+### 主题系统
+
+支持深色/浅色双主题，通过 `AppThemeColors` 抽象接口实现：
+
+```dart
+// 获取当前主题颜色
+final colors = ref.watch(themeColorsProvider);
+colors.background      // 背景色
+colors.textPrimary     // 主文字色
+colors.buttonGradient  // 按钮渐变
+```
+
+主题切换：`ref.read(settingsProvider.notifier).updateThemeMode(AppThemeMode.light/dark)`
+
+### 归属日期逻辑
+
+凌晨 00:00-05:59 的打卡记录归属到**前一天**，由 `AppDateUtils.getBelongDateString()` 处理。
+
+### 动态颜色计算
+
+`SleepRecord` 提供动态计算方法，颜色根据当前 `normalTime` 设置实时计算：
+- `record.getLevel(normalTime)` - 计算级别 (1-7)
+- `record.isLate(normalTime)` - 判断是否熬夜
+- `record.getColor(normalTime)` - 获取对应颜色
+
+### 7级颜色阈值
+
+相对于 `normalTime` 的分钟偏移量：`[-40, -25, -10, 10, 25, 40]`
+
+| 偏移范围 | 级别 | 颜色 |
+|---------|------|------|
+| < -40min | 1 | 深绿 |
+| -40 ~ -25 | 2 | 绿色 |
+| -25 ~ -10 | 3 | 浅绿 |
+| -10 ~ +10 | 4 | 黄绿 (正常) |
+| +10 ~ +25 | 5 | 黄色 |
+| +25 ~ +40 | 6 | 橙色 |
+| > +40min | 7 | 红色 (熬夜) |
+
+### ClockButton 状态模式
+
+使用 sealed class 实现三态：
+- `ClockButtonCanClock` - 可打卡
+- `ClockButtonClocked(time, normalTime)` - 已打卡
+- `ClockButtonDisabled` - 时间外禁用
+
+## 数据库表
+
+### sleep_records
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | INTEGER | 主键自增 |
-| date | TEXT | 日期（唯一），格式 `YYYY-MM-DD` |
-| time | TEXT | 睡觉时间，格式 `HH:mm` |
-| level | INTEGER | 颜色级别（1-7） |
-| created_at | TEXT | 记录创建时间 |
+| date | TEXT | 归属日期 YYYY-MM-DD (唯一) |
+| time | TEXT | 睡觉时间 HH:mm |
+| level | INTEGER | 缓存级别 (实际使用动态计算) |
+| created_at | TEXT | 创建时间 ISO8601 |
 
-### user_settings 表（用户设置）
+### user_settings
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| id | INTEGER | 主键（固定为1） |
-| normal_time | TEXT | 正常睡觉时间，默认 `23:00` |
+| id | INTEGER | 主键 (固定为1) |
+| normal_time | TEXT | 正常睡觉时间，默认 23:00 |
+| theme_mode | TEXT | 主题模式，'dark' 或 'light' |
 | updated_at | TEXT | 更新时间 |
 
-## 备注
+## 关键文件
 
-- 正常睡觉时间默认值：23:00（可配置 18:00 - 次日 04:00）
-- 已记录时间不可修改、不可删除
-- 分享功能生成微信长图格式
-- 打卡时间限制：18:00 - 次日 06:00
+| 文件 | 职责 |
+|------|------|
+| `config/theme_colors.dart` | 主题颜色抽象接口 + 深色/浅色实现 |
+| `config/theme.dart` | ThemeData 配置，向后兼容的 const 颜色 |
+| `services/database_service.dart` | SQLite 单例，表结构定义 |
+| `services/sleep_service.dart` | 打卡业务逻辑 (时间验证、level 计算) |
+| `services/share_service.dart` | 截图分享功能 |
+| `utils/date_utils.dart` | 日期格式化、归属日期计算、时间偏移 |
+| `utils/level_utils.dart` | 级别计算、打卡时间验证 (18:00-06:00) |
+| `widgets/clock_button.dart` | 打卡按钮 (动画 + sealed class 状态模式) |
+| `widgets/calendar_heatmap.dart` | 月度热力图 |

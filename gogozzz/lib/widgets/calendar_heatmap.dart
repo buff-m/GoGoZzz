@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../config/theme_colors.dart';
 import '../models/sleep_record.dart';
+import '../providers/settings_provider.dart';
 import '../utils/date_utils.dart';
 
 /// 日历热力图组件
-class CalendarHeatmap extends StatelessWidget {
+class CalendarHeatmap extends ConsumerWidget {
   final int year;
   final int month;
   final List<SleepRecord> records;
@@ -23,29 +25,31 @@ class CalendarHeatmap extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = ref.watch(themeColorsProvider);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.backgroundCard,
+        color: colors.backgroundCard,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor, width: 0.5),
+        border: Border.all(color: colors.border, width: 0.5),
       ),
       child: Column(
         children: [
-          _buildMonthSelector(),
+          _buildMonthSelector(colors),
           const SizedBox(height: 18),
-          _buildWeekdayHeader(),
+          _buildWeekdayHeader(colors),
           const SizedBox(height: 10),
-          _buildCalendarGrid(),
+          _buildCalendarGrid(colors),
           const SizedBox(height: 16),
-          _buildLegend(),
+          _buildLegend(colors),
         ],
       ),
     );
   }
 
-  Widget _buildMonthSelector() {
+  Widget _buildMonthSelector(AppThemeColors colors) {
     final (prevYear, prevMonth) = AppDateUtils.getPreviousMonth(year, month);
     final (nextYear, nextMonth) = AppDateUtils.getNextMonth(year, month);
 
@@ -55,41 +59,43 @@ class CalendarHeatmap extends StatelessWidget {
         _buildNavButton(
           icon: Icons.chevron_left_rounded,
           onTap: () => onMonthChanged?.call(prevYear, prevMonth),
+          colors: colors,
         ),
         Text(
           AppDateUtils.formatMonth(year, month),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
+            color: colors.textPrimary,
             letterSpacing: 0.5,
           ),
         ),
         _buildNavButton(
           icon: Icons.chevron_right_rounded,
           onTap: () => onMonthChanged?.call(nextYear, nextMonth),
+          colors: colors,
         ),
       ],
     );
   }
 
-  Widget _buildNavButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildNavButton({required IconData icon, required VoidCallback onTap, required AppThemeColors colors}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: AppTheme.backgroundCardLight,
+          color: colors.backgroundCardLight,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppTheme.borderColor, width: 0.5),
+          border: Border.all(color: colors.border, width: 0.5),
         ),
-        child: Icon(icon, size: 18, color: AppTheme.textSecondary),
+        child: Icon(icon, size: 18, color: colors.textSecondary),
       ),
     );
   }
 
-  Widget _buildWeekdayHeader() {
+  Widget _buildWeekdayHeader(AppThemeColors colors) {
     const weekdays = ['一', '二', '三', '四', '五', '六', '日'];
     return Row(
       children: weekdays.map((day) {
@@ -97,9 +103,9 @@ class CalendarHeatmap extends StatelessWidget {
           child: Center(
             child: Text(
               day,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppTheme.textTertiary,
+                color: colors.textTertiary,
                 letterSpacing: 0.5,
               ),
             ),
@@ -109,7 +115,7 @@ class CalendarHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildCalendarGrid() {
+  Widget _buildCalendarGrid(AppThemeColors colors) {
     final firstDay = DateTime(year, month, 1);
     final lastDay = DateTime(year, month + 1, 0);
     final daysInMonth = lastDay.day;
@@ -139,7 +145,7 @@ class CalendarHeatmap extends StatelessWidget {
             padding: const EdgeInsets.all(2.5),
             child: AspectRatio(
               aspectRatio: 1,
-              child: _buildDayCell(day, record, isToday, dateStr),
+              child: _buildDayCell(day, record, isToday, dateStr, colors),
             ),
           ),
         ),
@@ -168,7 +174,7 @@ class CalendarHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildDayCell(int day, SleepRecord? record, bool isToday, String dateStr) {
+  Widget _buildDayCell(int day, SleepRecord? record, bool isToday, String dateStr, AppThemeColors colors) {
     Color bgColor;
     Color textColor;
 
@@ -176,8 +182,8 @@ class CalendarHeatmap extends StatelessWidget {
       bgColor = record.getColor(normalTime);
       textColor = Colors.black.withValues(alpha: 0.7);
     } else {
-      bgColor = AppTheme.backgroundCardLight;
-      textColor = AppTheme.textTertiary;
+      bgColor = colors.backgroundCardLight;
+      textColor = colors.textTertiary;
     }
 
     return Material(
@@ -220,16 +226,16 @@ class CalendarHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildLegend() {
+  Widget _buildLegend(AppThemeColors colors) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           '早睡',
-          style: TextStyle(fontSize: 10, color: AppTheme.textTertiary),
+          style: TextStyle(fontSize: 10, color: colors.textTertiary),
         ),
         const SizedBox(width: 6),
-        ...AppTheme.levelColors.map((color) => Container(
+        ...AppThemeColors.levelColors.map((color) => Container(
               width: 14,
               height: 14,
               margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -239,9 +245,9 @@ class CalendarHeatmap extends StatelessWidget {
               ),
             )),
         const SizedBox(width: 6),
-        const Text(
+        Text(
           '熬夜',
-          style: TextStyle(fontSize: 10, color: AppTheme.textTertiary),
+          style: TextStyle(fontSize: 10, color: colors.textTertiary),
         ),
       ],
     );

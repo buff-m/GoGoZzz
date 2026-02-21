@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../config/theme.dart';
+import '../config/theme_colors.dart';
 import '../models/monthly_stats.dart';
 import '../models/sleep_record.dart';
 import '../providers/sleep_provider.dart';
@@ -35,6 +35,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   @override
   Widget build(BuildContext context) {
     final sleepState = ref.watch(sleepProvider);
+    final colors = ref.watch(themeColorsProvider);
 
     if (sleepState.lastUpdated.isAfter(_lastRefreshTime)) {
       _lastRefreshTime = sleepState.lastUpdated;
@@ -51,16 +52,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final previousStatsAsync = ref.watch(monthlyStatsProvider(previousMonth));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundDark,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(colors),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _onRefresh,
-                color: AppTheme.levelColors[3],
-                backgroundColor: AppTheme.backgroundCard,
+                color: AppThemeColors.levelColors[3],
+                backgroundColor: colors.backgroundCard,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
@@ -69,26 +70,26 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                       // 日历热力图
                       statsAsync.when(
                         data: (stats) => _buildCalendarWithData(stats),
-                        loading: () => const _LoadingWidget(),
-                        error: (e, _) => _ErrorWidget(message: e.toString()),
+                        loading: () => _LoadingWidget(colors: colors),
+                        error: (e, _) => _ErrorWidget(message: e.toString(), colors: colors),
                       ),
                       const SizedBox(height: 12),
                       // 统计卡片
                       statsAsync.when(
                         data: (stats) => Row(
                           children: [
-                            LateDaysCard(lateDays: stats.lateDays),
+                            LateDaysCard(lateDays: stats.lateDays, colors: colors),
                             const SizedBox(width: 12),
-                            ClockedDaysCard(clockedDays: stats.clockedDays),
+                            ClockedDaysCard(clockedDays: stats.clockedDays, colors: colors),
                           ],
                         ),
-                        loading: () => const _LoadingWidget(),
-                        error: (e, _) => _ErrorWidget(message: e.toString()),
+                        loading: () => _LoadingWidget(colors: colors),
+                        error: (e, _) => _ErrorWidget(message: e.toString(), colors: colors),
                       ),
                       const SizedBox(height: 12),
                       // 极值记录
                       statsAsync.when(
-                        data: (stats) => _buildExtremeRecords(stats),
+                        data: (stats) => _buildExtremeRecords(stats, colors),
                         loading: () => const SizedBox(),
                         error: (_, __) => const SizedBox(),
                       ),
@@ -105,8 +106,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                                 ? AppDateUtils.formatMonth(
                                     previousStats.year, previousStats.month)
                                 : null,
+                            colors: colors,
                           ),
-                          loading: () => const _LoadingWidget(),
+                          loading: () => _LoadingWidget(colors: colors),
                           error: (_, __) => const SizedBox(),
                         ),
                         loading: () => const SizedBox(),
@@ -123,17 +125,17 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppThemeColors colors) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 12, 12, 8),
       child: Row(
         children: [
-          const Text(
+          Text(
             '统计',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
+              color: colors.textPrimary,
               letterSpacing: 0.5,
             ),
           ),
@@ -141,29 +143,31 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           _buildHeaderButton(
             icon: Icons.refresh_rounded,
             onTap: _refreshStats,
+            colors: colors,
           ),
           const SizedBox(width: 4),
           _buildHeaderButton(
             icon: Icons.ios_share_rounded,
             onTap: _shareStats,
+            colors: colors,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildHeaderButton({required IconData icon, required VoidCallback onTap, required AppThemeColors colors}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: AppTheme.backgroundCard,
+          color: colors.backgroundCard,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppTheme.borderColor, width: 0.5),
+          border: Border.all(color: colors.border, width: 0.5),
         ),
-        child: Icon(icon, size: 18, color: AppTheme.textSecondary),
+        child: Icon(icon, size: 18, color: colors.textSecondary),
       ),
     );
   }
@@ -229,19 +233,19 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     return '$date $time';
   }
 
-  Widget _buildExtremeRecords(MonthlyStats stats) {
+  Widget _buildExtremeRecords(MonthlyStats stats, AppThemeColors colors) {
     if (!stats.hasRecords) {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppTheme.backgroundCard,
+          color: colors.backgroundCard,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderColor, width: 0.5),
+          border: Border.all(color: colors.border, width: 0.5),
         ),
-        child: const Center(
+        child: Center(
           child: Text(
             '本月暂无打卡记录',
-            style: TextStyle(color: AppTheme.textTertiary, fontSize: 14),
+            style: TextStyle(color: colors.textTertiary, fontSize: 14),
           ),
         ),
       );
@@ -250,9 +254,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppTheme.backgroundCard,
+        color: colors.backgroundCard,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor, width: 0.5),
+        border: Border.all(color: colors.border, width: 0.5),
       ),
       child: Column(
         children: [
@@ -262,21 +266,21 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 width: 28,
                 height: 28,
                 decoration: BoxDecoration(
-                  color: AppTheme.textTertiary.withValues(alpha: 0.15),
+                  color: colors.textTertiary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.auto_awesome_rounded,
                   size: 14,
-                  color: AppTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 '本月极值',
                 style: TextStyle(
                   fontSize: 12,
-                  color: AppTheme.textSecondary,
+                  color: colors.textSecondary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -286,24 +290,26 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           if (stats.earliestTime != null)
             _buildExtremeItem(
               icon: Icons.wb_sunny_outlined,
-              iconColor: AppTheme.levelColors[1],
+              iconColor: AppThemeColors.levelColors[1],
               label: '最早入睡',
               time: _formatActualDateTime(stats.earliestDate!, stats.earliestTime!),
+              colors: colors,
             ),
           if (stats.earliestTime != null && stats.latestTime != null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Divider(
-                color: AppTheme.borderColor,
+                color: colors.border,
                 height: 1,
               ),
             ),
           if (stats.latestTime != null)
             _buildExtremeItem(
               icon: Icons.nightlight_round,
-              iconColor: AppTheme.levelColors[6],
+              iconColor: AppThemeColors.levelColors[6],
               label: '最晚入睡',
               time: _formatActualDateTime(stats.latestDate!, stats.latestTime!),
+              colors: colors,
             ),
         ],
       ),
@@ -315,6 +321,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     required Color iconColor,
     required String label,
     required String time,
+    required AppThemeColors colors,
   }) {
     return Row(
       children: [
@@ -330,16 +337,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         const SizedBox(width: 12),
         Text(
           label,
-          style: const TextStyle(
-            color: AppTheme.textSecondary,
+          style: TextStyle(
+            color: colors.textSecondary,
             fontSize: 13,
           ),
         ),
         const Spacer(),
         Text(
           time,
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
+          style: TextStyle(
+            color: colors.textPrimary,
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
@@ -349,10 +356,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   void _shareStats() {
+    final colors = ref.read(themeColorsProvider);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('分享功能开发中...'),
-        backgroundColor: AppTheme.backgroundCard,
+        backgroundColor: colors.backgroundCard,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
@@ -361,7 +369,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 }
 
 class _LoadingWidget extends StatelessWidget {
-  const _LoadingWidget();
+  final AppThemeColors colors;
+
+  const _LoadingWidget({required this.colors});
 
   @override
   Widget build(BuildContext context) {
@@ -369,7 +379,7 @@ class _LoadingWidget extends StatelessWidget {
       height: 100,
       child: Center(
         child: CircularProgressIndicator(
-          color: AppTheme.levelColors[3],
+          color: AppThemeColors.levelColors[3],
           strokeWidth: 2,
         ),
       ),
@@ -379,8 +389,9 @@ class _LoadingWidget extends StatelessWidget {
 
 class _ErrorWidget extends StatelessWidget {
   final String message;
+  final AppThemeColors colors;
 
-  const _ErrorWidget({required this.message});
+  const _ErrorWidget({required this.message, required this.colors});
 
   @override
   Widget build(BuildContext context) {
@@ -388,7 +399,7 @@ class _ErrorWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Text(
         message,
-        style: TextStyle(color: AppTheme.levelColors[6], fontSize: 13),
+        style: TextStyle(color: AppThemeColors.levelColors[6], fontSize: 13),
       ),
     );
   }

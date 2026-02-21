@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/sleep_record.dart';
 import '../models/monthly_stats.dart';
-import '../services/database_service.dart';
 import '../repositories/sleep_repository.dart';
 import '../services/sleep_service.dart';
 import 'settings_provider.dart';
@@ -133,5 +132,6 @@ final monthlyStatsProvider =
     FutureProvider.family<MonthlyStats, (int, int)>((ref, params) async {
   final (year, month) = params;
   final repository = ref.watch(sleepRepositoryProvider);
-  return await repository.getMonthlyStats(year, month);
+  final normalTime = ref.watch(normalTimeProvider);
+  return await repository.getMonthlyStats(year, month, normalTime: normalTime);
 });

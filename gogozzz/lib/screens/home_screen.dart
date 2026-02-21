@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../config/theme.dart';
+import '../config/theme_colors.dart';
 import '../providers/sleep_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/clock_button.dart';
@@ -25,17 +25,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final sleepState = ref.watch(sleepProvider);
+    final colors = ref.watch(themeColorsProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundDark,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(colors),
             const Spacer(flex: 2),
-            _buildClockButton(sleepState),
+            _buildClockButton(sleepState, colors),
             const Spacer(flex: 3),
-            _buildWeekSection(sleepState),
+            _buildWeekSection(sleepState, colors),
             const SizedBox(height: 24),
           ],
         ),
@@ -43,7 +44,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppThemeColors colors) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 12, 12, 0),
       child: Row(
@@ -55,9 +56,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: AppTheme.backgroundCard,
+                  color: colors.backgroundCard,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.borderColor, width: 0.5),
+                  border: Border.all(color: colors.border, width: 0.5),
                 ),
                 child: const Center(
                   child: Text(
@@ -71,12 +72,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'GoGoZzz',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppTheme.textPrimary,
+                  color: colors.textPrimary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -85,10 +86,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const Spacer(),
           IconButton(
             onPressed: widget.onSettingsTap,
-            icon: const Icon(
+            icon: Icon(
               Icons.tune_rounded,
               size: 22,
-              color: AppTheme.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -96,7 +97,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildClockButton(SleepState sleepState) {
+  Widget _buildClockButton(SleepState sleepState, AppThemeColors colors) {
     final normalTime = ref.watch(normalTimeProvider);
     final now = DateTime.now();
     final isValidTime = LevelUtils.isClockTimeValidForTime(now);
@@ -125,7 +126,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
-              color: AppTheme.levelColors[3],
+              color: AppThemeColors.levelColors[3],
               strokeWidth: 2,
             ),
           )
@@ -133,34 +134,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppTheme.levelColors[6].withValues(alpha: 0.1),
+              color: AppThemeColors.levelColors[6].withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: AppTheme.levelColors[6].withValues(alpha: 0.3),
+                color: AppThemeColors.levelColors[6].withValues(alpha: 0.3),
                 width: 0.5,
               ),
             ),
             child: Text(
               sleepState.error!,
               style: TextStyle(
-                color: AppTheme.levelColors[6],
+                color: AppThemeColors.levelColors[6],
                 fontSize: 12,
               ),
             ),
           )
         else
-          _buildStatusHint(sleepState, isValidTime),
+          _buildStatusHint(sleepState, isValidTime, colors),
       ],
     );
   }
 
-  Widget _buildStatusHint(SleepState sleepState, bool isValidTime) {
+  Widget _buildStatusHint(SleepState sleepState, bool isValidTime, AppThemeColors colors) {
     if (sleepState.todayRecord != null) {
       return Text(
         '今日已记录，好好休息 🌙',
         style: TextStyle(
           fontSize: 13,
-          color: AppTheme.textTertiary,
+          color: colors.textTertiary,
           letterSpacing: 0.5,
         ),
       );
@@ -170,7 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         '打卡时间：18:00 - 次日 06:00',
         style: TextStyle(
           fontSize: 13,
-          color: AppTheme.textTertiary,
+          color: colors.textTertiary,
         ),
       );
     }
@@ -178,13 +179,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       '记录今晚的入睡时间',
       style: TextStyle(
         fontSize: 13,
-        color: AppTheme.textTertiary,
+        color: colors.textTertiary,
         letterSpacing: 0.5,
       ),
     );
   }
 
-  Widget _buildWeekSection(SleepState sleepState) {
+  Widget _buildWeekSection(SleepState sleepState, AppThemeColors colors) {
     final normalTime = ref.watch(normalTimeProvider);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -194,10 +195,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 4, bottom: 10),
             child: Text(
-              '最近 7 天',
+              '本周',
               style: TextStyle(
                 fontSize: 12,
-                color: AppTheme.textTertiary,
+                color: colors.textTertiary,
                 letterSpacing: 1,
               ),
             ),

@@ -57,6 +57,7 @@ databaseServiceProvider
     → sleepRepositoryProvider / settingsRepositoryProvider
         → sleepServiceProvider
             → sleepProvider (StateNotifier)
+            → monthlyStatsProvider (FutureProvider.family)
 
 settingsRepositoryProvider
     → settingsProvider
@@ -65,10 +66,12 @@ settingsRepositoryProvider
 
 ### 路由结构
 
-使用 `ShellRoute` 实现底部导航常驻：
+使用 `ShellRoute` + `PageView` 实现底部导航常驻和滑动切换：
 - `/` - 首页 (HomeScreen)
 - `/stats` - 统计页 (StatsScreen)
 - `/settings` - 设置页 (独立页面，无底部导航)
+
+首页与统计页支持**左右滑动切换**，通过 `PageController` 控制。
 
 ## 核心设计
 
@@ -118,6 +121,17 @@ colors.buttonGradient  // 按钮渐变
 - `ClockButtonClocked(time, normalTime)` - 已打卡
 - `ClockButtonDisabled` - 时间外禁用
 
+### 补卡功能
+
+支持为过去的日期补录睡眠记录，限制条件：
+- 只能补录**过去**的日期（今天及未来不可补）
+- 睡眠时间范围：**18:00 - 次日 05:59**
+- 每个日期只能有一条记录
+
+调用方式：`ref.read(sleepProvider.notifier).addMakeupRecord(date: '2026-02-21', time: '23:30')`
+
+UI 入口：`SleepRecordBottomSheet.show()` 点击未打卡日期后显示补卡按钮。
+
 ## 数据库表
 
 ### sleep_records
@@ -143,12 +157,16 @@ colors.buttonGradient  // 按钮渐变
 
 | 文件 | 职责 |
 |------|------|
-| `config/theme_colors.dart` | 主题颜色抽象接口 + 深色/浅色实现 |
+| `config/theme_colors.dart` | 主题颜色抽象接口 + 深色/浅色实现 + 7级颜色定义 |
 | `config/theme.dart` | ThemeData 配置，向后兼容的 const 颜色 |
 | `services/database_service.dart` | SQLite 单例，表结构定义 |
-| `services/sleep_service.dart` | 打卡业务逻辑 (时间验证、level 计算) |
+| `services/sleep_service.dart` | 打卡业务逻辑 (时间验证、level 计算、补卡) |
 | `services/share_service.dart` | 截图分享功能 |
 | `utils/date_utils.dart` | 日期格式化、归属日期计算、时间偏移 |
 | `utils/level_utils.dart` | 级别计算、打卡时间验证 (18:00-06:00) |
+| `utils/constants.dart` | 应用常量 (表名、时间范围、级别偏移量) |
 | `widgets/clock_button.dart` | 打卡按钮 (动画 + sealed class 状态模式) |
 | `widgets/calendar_heatmap.dart` | 月度热力图 |
+| `widgets/sleep_record_bottom_sheet.dart` | 记录详情抽屉 + 补卡时间选择器 |
+| `providers/sleep_provider.dart` | 状态管理 (打卡、补卡、月度统计) |
+| `providers/settings_provider.dart` | 设置状态管理 (normalTime、主题) |

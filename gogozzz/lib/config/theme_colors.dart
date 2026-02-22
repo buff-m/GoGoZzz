@@ -22,6 +22,9 @@ abstract class AppThemeColors {
   LinearGradient get buttonGradient;
   LinearGradient get buttonGradientChecked;
 
+  // 按钮前景色（文字/图标）
+  Color get buttonForeground;
+
   // 7级颜色（共用）
   static const List<Color> levelColors = [
     Color(0xFF15803d), // 1: 深绿
@@ -90,6 +93,9 @@ class DarkThemeColors implements AppThemeColors {
         end: Alignment.bottomRight,
         colors: [Color(0xFF0d2818), Color(0xFF061410)],
       );
+
+  @override
+  Color get buttonForeground => const Color(0xFFFFFFFF);
 }
 
 /// 亮色主题颜色
@@ -139,4 +145,7 @@ class LightThemeColors implements AppThemeColors {
         end: Alignment.bottomRight,
         colors: [Color(0xffe8f5e9), Color(0xffc8e6c9)],
       );
+
+  @override
+  Color get buttonForeground => const Color(0xff2d2a26);
 }

@@ -212,6 +212,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 date: date,
                 record: record,
                 normalTime: normalTime,
+                onMakeupSuccess: () {
+                  ref.read(sleepProvider.notifier).loadRecentRecords(7);
+                },
               );
             },
           ),

@@ -196,6 +196,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           date: date,
           record: record,
           normalTime: normalTime,
+          onMakeupSuccess: () {
+            ref.read(sleepProvider.notifier).loadRecentRecords(7);
+            _refreshStats();
+          },
         );
       },
     );

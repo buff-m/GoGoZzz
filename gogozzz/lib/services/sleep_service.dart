@@ -94,4 +94,58 @@ class SleepService {
     if (todayRecord != null) return false;
     return isValidTime;
   }
+
+  /// 补卡（为指定日期添加记录）
+  Future<SleepRecord> addMakeupRecord({
+    required String date,
+    required String time,
+  }) async {
+    // 1. 验证日期：不允许补未来，且只能补近7天
+    final targetDate = AppDateUtils.parseDate(date);
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    if (!targetDate.isBefore(todayOnly)) {
+      throw Exception('不能为今天或未来的日期补卡');
+    }
+
+    final sevenDaysAgo = today.subtract(const Duration(days: 7));
+    final sevenDaysAgoOnly = DateTime(sevenDaysAgo.year, sevenDaysAgo.month, sevenDaysAgo.day);
+    if (targetDate.isBefore(sevenDaysAgoOnly)) {
+      throw Exception('只能补近7天内的记录');
+    }
+
+    // 2. 验证时间范围 (18:00 - 次日 05:59)
+    if (!isValidSleepTime(time)) {
+      throw Exception('睡眠时间必须在 18:00 - 次日 05:59 之间');
+    }
+
+    // 3. 检查是否已有记录
+    final existing = await _sleepRepository.getByDate(date);
+    if (existing != null) {
+      throw Exception('该日期已有打卡记录');
+    }
+
+    // 4. 创建并保存记录
+    final settings = await _settingsRepository.getSettings();
+    final level = LevelUtils.calculateLevel(time, settings.normalTime);
+    final record = SleepRecord(
+      date: date,
+      time: time,
+      level: level,
+      createdAt: DateTime.now().toIso8601String(),
+    );
+
+    await _sleepRepository.insert(record);
+    return record;
+  }
+
+  /// 验证睡眠时间是否有效 (18:00 - 次日 05:59)
+  bool isValidSleepTime(String time) {
+    final parts = time.split(':');
+    if (parts.length != 2) return false;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return false;
+    return hour >= 18 || hour < 6;
+  }
 }

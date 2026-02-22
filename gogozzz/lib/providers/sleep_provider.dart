@@ -3,6 +3,7 @@ import '../models/sleep_record.dart';
 import '../models/monthly_stats.dart';
 import '../repositories/sleep_repository.dart';
 import '../services/sleep_service.dart';
+import '../utils/date_utils.dart';
 import 'settings_provider.dart';
 
 /// 打卡状态
@@ -86,6 +87,31 @@ class SleepNotifier extends StateNotifier<SleepState> {
       state = state.copyWith(recentRecords: records);
     } catch (e) {
       state = state.copyWith(error: e.toString());
+    }
+  }
+
+  /// 补卡
+  Future<bool> addMakeupRecord({
+    required String date,
+    required String time,
+  }) async {
+    state = state.copyWith(isClocking: true, error: null);
+    try {
+      final record = await _service.addMakeupRecord(date: date, time: time);
+
+      // 如果补的是今天，更新 todayRecord
+      final today = AppDateUtils.getBelongDateString();
+      state = state.copyWith(
+        todayRecord: date == today ? record : state.todayRecord,
+        isClocking: false,
+      );
+
+      // 刷新最近记录
+      await loadRecentRecords(7);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isClocking: false, error: e.toString());
+      return false;
     }
   }
 

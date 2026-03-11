@@ -25,6 +25,9 @@ flutter run                    # 调试运行
 flutter build apk --release    # 构建 Release APK
 flutter analyze                # 静态分析
 flutter test                   # 运行测试
+
+# 应用图标更新（修改 assets/logo/ 后执行）
+dart run flutter_launcher_icons
 ```
 
 ## 架构概览
@@ -170,3 +173,9 @@ UI 入口：`SleepRecordBottomSheet.show()` 点击未打卡日期后显示补卡
 | `widgets/sleep_record_bottom_sheet.dart` | 记录详情抽屉 + 补卡时间选择器 |
 | `providers/sleep_provider.dart` | 状态管理 (打卡、补卡、月度统计) |
 | `providers/settings_provider.dart` | 设置状态管理 (normalTime、主题) |
+
+## 开发注意事项
+
+- **代码注释语言**：与代码库保持一致（当前为中文）
+- **测试**：目前仅有默认 `widget_test.dart`，暂无单元测试覆盖
+- **代码生成**：配置了 `riverpod_generator` 和 `build_runner`，但当前未使用生成的代码

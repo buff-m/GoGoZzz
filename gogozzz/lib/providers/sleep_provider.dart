@@ -153,6 +153,18 @@ final recentRecordsProvider = Provider<List<SleepRecord>>((ref) {
   return sleepState.recentRecords;
 });
 
+/// 月度记录 Provider（日历用，加载当月所有记录）
+final monthlyRecordsProvider =
+    FutureProvider.family<List<SleepRecord>, (int, int)>((ref, params) async {
+  final (year, month) = params;
+  final repository = ref.watch(sleepRepositoryProvider);
+  final firstDate = '$year-${month.toString().padLeft(2, '0')}-01';
+  final lastDayDt = DateTime(year, month + 1, 0);
+  final lastDate =
+      '$year-${month.toString().padLeft(2, '0')}-${lastDayDt.day.toString().padLeft(2, '0')}';
+  return await repository.getByDateRange(firstDate, lastDate);
+});
+
 /// 月度统计 Provider
 final monthlyStatsProvider =
     FutureProvider.family<MonthlyStats, (int, int)>((ref, params) async {

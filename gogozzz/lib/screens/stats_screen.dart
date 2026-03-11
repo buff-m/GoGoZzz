@@ -174,20 +174,18 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
   Widget _buildCalendarWithData(MonthlyStats stats) {
     final normalTime = ref.watch(normalTimeProvider);
-    final records = <String, SleepRecord>{};
-    final recentRecords = ref.read(sleepProvider).recentRecords;
-    for (final record in recentRecords) {
-      final recordDate = DateTime.parse(record.date);
-      if (recordDate.year == _currentYear &&
-          recordDate.month == _currentMonth) {
-        records[record.date] = record;
-      }
-    }
+    final monthlyRecordsAsync = ref.watch(
+      monthlyRecordsProvider((_currentYear, _currentMonth)),
+    );
+    final monthlyRecords = monthlyRecordsAsync.maybeWhen(
+      data: (records) => records,
+      orElse: () => <SleepRecord>[],
+    );
 
     return CalendarHeatmap(
       year: _currentYear,
       month: _currentMonth,
-      records: records.values.toList(),
+      records: monthlyRecords,
       normalTime: normalTime,
       onMonthChanged: _onMonthChanged,
       onDayTap: (date, record) {
@@ -208,6 +206,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Future<void> _refreshStats() async {
     setState(() => _lastRefreshTime = DateTime.now());
     ref.invalidate(monthlyStatsProvider((_currentYear, _currentMonth)));
+    ref.invalidate(monthlyRecordsProvider((_currentYear, _currentMonth)));
     final previousMonth =
         AppDateUtils.getPreviousMonth(_currentYear, _currentMonth);
     ref.invalidate(monthlyStatsProvider(previousMonth));

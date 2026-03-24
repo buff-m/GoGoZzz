@@ -1,2 +1,26 @@
+# IDE / Editor
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+# Claude / AI tools
+.claude/
 .kiro/
 .spec-workflow/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.apk
+*.aab
+build/
+
+# Temp files
+*.tmp
+*.temp
+*.log

@@ -1,7 +1,7 @@
 # GoGoZzz
 
 <p align="center">
-  <img src="gogozzz/assets/logo/logo.png" alt="GoGoZzz Logo" width="120">
+  <img src="gogozzz/assets/logo/foreground.svg" alt="GoGoZzz Logo" width="120">
 </p>
 
 <p align="center">

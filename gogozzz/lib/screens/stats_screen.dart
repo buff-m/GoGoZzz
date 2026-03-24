@@ -5,7 +5,7 @@ import '../models/monthly_stats.dart';
 import '../models/sleep_record.dart';
 import '../providers/sleep_provider.dart';
 import '../providers/settings_provider.dart';
-import '../widgets/calendar_heatmap.dart';
+import '../widgets/sleep_time_chart.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/trend_chart.dart';
 import '../widgets/sleep_record_bottom_sheet.dart';
@@ -43,6 +43,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       final previousMonth =
           AppDateUtils.getPreviousMonth(_currentYear, _currentMonth);
       ref.invalidate(monthlyStatsProvider(previousMonth));
+      ref.invalidate(chartRecordsProvider);
     }
 
     final statsAsync =
@@ -50,6 +51,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final previousMonth =
         AppDateUtils.getPreviousMonth(_currentYear, _currentMonth);
     final previousStatsAsync = ref.watch(monthlyStatsProvider(previousMonth));
+    final chartRecordsAsync = ref.watch(chartRecordsProvider);
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -67,12 +69,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   child: Column(
                     children: [
-                      // 日历热力图
-                      statsAsync.when(
-                        data: (stats) => _buildCalendarWithData(stats),
-                        loading: () => _LoadingWidget(colors: colors),
-                        error: (e, _) => _ErrorWidget(message: e.toString(), colors: colors),
-                      ),
+                      // 睡眠时间棒棒糖图
+                      _buildTimeChart(chartRecordsAsync, colors),
+                      const SizedBox(height: 12),
+                      // 月份选择器
+                      _buildMonthSelector(colors),
                       const SizedBox(height: 12),
                       // 统计卡片
                       statsAsync.when(
@@ -172,41 +173,108 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
-  Widget _buildCalendarWithData(MonthlyStats stats) {
+  Widget _buildTimeChart(
+    AsyncValue<List<SleepRecord>> chartRecordsAsync,
+    AppThemeColors colors,
+  ) {
     final normalTime = ref.watch(normalTimeProvider);
-    final monthlyRecordsAsync = ref.watch(
-      monthlyRecordsProvider((_currentYear, _currentMonth)),
-    );
-    final monthlyRecords = monthlyRecordsAsync.maybeWhen(
-      data: (records) => records,
-      orElse: () => <SleepRecord>[],
-    );
 
-    return CalendarHeatmap(
-      year: _currentYear,
-      month: _currentMonth,
-      records: monthlyRecords,
-      normalTime: normalTime,
-      onMonthChanged: _onMonthChanged,
-      onDayTap: (date, record) {
-        SleepRecordBottomSheet.show(
-          context: context,
-          date: date,
-          record: record,
-          normalTime: normalTime,
-          onMakeupSuccess: () {
-            ref.read(sleepProvider.notifier).loadRecentRecords(7);
-            _refreshStats();
-          },
-        );
+    return chartRecordsAsync.when(
+      data: (records) {
+        // 计算 totalDays：从最早记录到今天的天数，最少30天
+        int totalDays = 30;
+        if (records.isNotEmpty) {
+          // records 按 date DESC 排序，最后一个是最早的
+          final earliestDate = DateTime.parse(records.last.date);
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+          final diff = today.difference(earliestDate).inDays + 1;
+          if (diff > totalDays) totalDays = diff;
+        }
+        return SleepTimeChart(
+        records: records,
+        normalTime: normalTime,
+        totalDays: totalDays,
+        colors: colors,
+        onDayTap: (date, record) {
+          SleepRecordBottomSheet.show(
+            context: context,
+            date: date,
+            record: record,
+            normalTime: normalTime,
+            onMakeupSuccess: () {
+              ref.read(sleepProvider.notifier).loadRecentRecords(7);
+              _refreshStats();
+            },
+          );
+        },
+      );
       },
+      loading: () => _LoadingWidget(colors: colors),
+      error: (e, _) => _ErrorWidget(message: e.toString(), colors: colors),
+    );
+  }
+
+  Widget _buildMonthSelector(AppThemeColors colors) {
+    final (prevYear, prevMonth) =
+        AppDateUtils.getPreviousMonth(_currentYear, _currentMonth);
+    final (nextYear, nextMonth) =
+        AppDateUtils.getNextMonth(_currentYear, _currentMonth);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colors.backgroundCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.border, width: 0.5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildNavButton(
+            icon: Icons.chevron_left_rounded,
+            onTap: () => _onMonthChanged(prevYear, prevMonth),
+            colors: colors,
+          ),
+          Text(
+            AppDateUtils.formatMonth(_currentYear, _currentMonth),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+              letterSpacing: 0.5,
+            ),
+          ),
+          _buildNavButton(
+            icon: Icons.chevron_right_rounded,
+            onTap: () => _onMonthChanged(nextYear, nextMonth),
+            colors: colors,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavButton({required IconData icon, required VoidCallback onTap, required AppThemeColors colors}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: colors.backgroundCardLight,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: colors.border, width: 0.5),
+        ),
+        child: Icon(icon, size: 18, color: colors.textSecondary),
+      ),
     );
   }
 
   Future<void> _refreshStats() async {
     setState(() => _lastRefreshTime = DateTime.now());
     ref.invalidate(monthlyStatsProvider((_currentYear, _currentMonth)));
-    ref.invalidate(monthlyRecordsProvider((_currentYear, _currentMonth)));
+    ref.invalidate(chartRecordsProvider);
     final previousMonth =
         AppDateUtils.getPreviousMonth(_currentYear, _currentMonth);
     ref.invalidate(monthlyStatsProvider(previousMonth));

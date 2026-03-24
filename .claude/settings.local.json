@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(where flutter)",
-      "Bash(flutter:*)"
+      "Bash(flutter:*)",
+      "Bash(wc:*)"
     ]
   }
 }

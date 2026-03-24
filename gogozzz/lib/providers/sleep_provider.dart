@@ -165,6 +165,15 @@ final monthlyRecordsProvider =
   return await repository.getByDateRange(firstDate, lastDate);
 });
 
+/// 图表记录 Provider（加载从最早记录到今天的全量数据）
+final chartRecordsProvider = FutureProvider<List<SleepRecord>>((ref) async {
+  final repository = ref.watch(sleepRepositoryProvider);
+  final now = DateTime.now();
+  final endDate =
+      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  return await repository.getByDateRange('2020-01-01', endDate);
+});
+
 /// 月度统计 Provider
 final monthlyStatsProvider =
     FutureProvider.family<MonthlyStats, (int, int)>((ref, params) async {

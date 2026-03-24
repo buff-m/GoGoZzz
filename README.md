@@ -27,15 +27,15 @@
 
 ### 深色主题
 
-| 首页 | 统计页 |
-|:---:|:---:|
-| ![首页-深色](docs/screenshots/home-dark.jpg) | ![统计页-深色](docs/screenshots/stats-dark.jpg) |
+| 首页 | 统计页 | 设置页 |
+|:---:|:---:|:---:|
+| ![首页-深色](docs/screenshots/home-dark.jpg) | ![统计页-深色](docs/screenshots/stats-dark.jpg) | ![设置页-深色](docs/screenshots/settings-dark.jpg) |
 
 ### 浅色主题
 
 | 首页 | 统计页 | 设置页 |
 |:---:|:---:|:---:|
-| ![首页-浅色](docs/screenshots/home-light.jpg) | ![统计页-浅色](docs/screenshots/stats-light.jpg) | ![设置页](docs/screenshots/settings.jpg) |
+| ![首页-浅色](docs/screenshots/home-light.jpg) | ![统计页-浅色](docs/screenshots/stats-light.jpg) | ![设置页-浅色](docs/screenshots/settings-light.jpg) |
 
 ## 🚀 快速开始
 

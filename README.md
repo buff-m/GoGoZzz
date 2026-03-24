@@ -25,7 +25,17 @@
 
 ## 📱 截图
 
-> TODO: 添加应用截图
+### 深色主题
+
+| 首页 | 统计页 |
+|:---:|:---:|
+| ![首页-深色](docs/screenshots/home-dark.jpg) | ![统计页-深色](docs/screenshots/stats-dark.jpg) |
+
+### 浅色主题
+
+| 首页 | 统计页 | 设置页 |
+|:---:|:---:|:---:|
+| ![首页-浅色](docs/screenshots/home-light.jpg) | ![统计页-浅色](docs/screenshots/stats-light.jpg) | ![设置页](docs/screenshots/settings.jpg) |
 
 ## 🚀 快速开始
 
